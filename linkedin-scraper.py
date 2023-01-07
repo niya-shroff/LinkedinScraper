@@ -6,15 +6,15 @@ import re
 #Using webdriver we can log into Linkedin via Chrome
 driver = webdriver.Chrome("/Users/niyas/Desktop/Projects/Python/Linkedin Scraper/chromedriver")
 driver.get("https://linkedin.com/uas/login")
-time.sleep(5)
+time.sleep(3)
 username = driver.find_element_by_id("username")
 username.send_keys(input("Enter your Email Address: "))
 password = driver.find_element_by_id("password")
 password.send_keys(input("Enter your Password: "))
 driver.find_element_by_xpath("//button[@type='submit']").click()
 
-#Use a test profile, this is mine for reference
-driver.get("https://www.linkedin.com/in/niyashroff")
+#Use a test profile, I chose Martha Stewart's profile for simplicity
+driver.get("https://www.linkedin.com/in/marthakstewart/")
 
 #This will let us scroll down to the bottom of the page and wait for everything to load
 start = time.time()
@@ -24,9 +24,9 @@ while True:
     driver.execute_script(f"window.scrollTo({initialScroll},{finalScroll})")
     initialScroll = finalScroll
     finalScroll += 1000
-    time.sleep(5)
+    time.sleep(3)
     end = time.time()
-    if round(end - start) > 20:
+    if round(end - start) > 100:
         break
 
 #This creates our LXML file from our profile of interest based on the page source
