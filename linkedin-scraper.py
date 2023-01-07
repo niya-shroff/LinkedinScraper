@@ -24,6 +24,7 @@ while True:
     driver.execute_script(f"window.scrollTo({initialScroll},{finalScroll})")
     initialScroll = finalScroll
     finalScroll += 1000
+    #This sleep time may need to change slightly to load the whole page properly
     time.sleep(3)
     end = time.time()
     if round(end - start) > 100:
