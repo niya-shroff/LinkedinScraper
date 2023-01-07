@@ -4,13 +4,13 @@ import time
 import re
 
 #Using webdriver we can log into Linkedin via Chrome
-driver = webdriver.Chrome("INPUT THE PATH TO THE CHROMEDRIVER HERE")
+driver = webdriver.Chrome("/Users/niyas/Desktop/Projects/Python/Linkedin Scraper/chromedriver")
 driver.get("https://linkedin.com/uas/login")
 time.sleep(5)
 username = driver.find_element_by_id("username")
-username.send_keys("INPUT YOUR LINKEDIN ACCOUNT USERNAME HERE")
-pword = driver.find_element_by_id("password")
-pword.send_keys("INPUT YOUR LINKEDIN ACCOUNT PASSWORD HERE")
+username.send_keys(input("Enter your Email Address: "))
+password = driver.find_element_by_id("password")
+password.send_keys(input("Enter your Password: "))
 driver.find_element_by_xpath("//button[@type='submit']").click()
 
 #Use a test profile, this is mine for reference
