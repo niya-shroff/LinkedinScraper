@@ -4,15 +4,15 @@ import time
 import re
 
 
-def scraper(link):
+def scraper(userEmail, userPass, link):
     # Using webdriver we can log into Linkedin via Chrome
     driver = webdriver.Chrome("/Users/niyas/Desktop/Projects/Python/Linkedin Scraper/chromedriver")
     driver.get("https://linkedin.com/uas/login")
     time.sleep(3)
     username = driver.find_element_by_id("username")
-    username.send_keys(input("Enter your Email Address: "))
+    username.send_keys(userEmail)
     password = driver.find_element_by_id("password")
-    password.send_keys(input("Enter your Password: "))
+    password.send_keys(userPass)
     driver.find_element_by_xpath("//button[@type='submit']").click()
 
     # Use a test profile (takes the input from the GUI)
@@ -56,6 +56,6 @@ def scraper(link):
     total_time = time_block[(end_time_Index + 1):]
 
     # Final print statement to summarize the data we have found
-    data = "This person's name is " + name + " and they work as a " + position + " at " + company + "." \
+    data = "This person's name is " + name + " and they work as a " + position + " at " + company + ". " \
     "They have worked there from " + start_time + "to" + end_time + "for a total of" + total_time + "."
     return data
