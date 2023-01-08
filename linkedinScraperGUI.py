@@ -4,10 +4,10 @@ import sys
 
 
 class Ui_MainWindow(object):
-    def setupUi(self, MainWindow):
-        MainWindow.setObjectName("Linkedin Scraper")
-        MainWindow.resize(800, 600)
-        self.centralwidget = QtWidgets.QWidget(MainWindow)
+    def setupUi(self, mainWindow):
+        mainWindow.setObjectName("Linkedin Scraper")
+        mainWindow.resize(800, 600)
+        self.centralwidget = QtWidgets.QWidget(mainWindow)
         self.centralwidget.setObjectName("centralwidget")
 
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
@@ -27,32 +27,32 @@ class Ui_MainWindow(object):
         self.textBrowser.setGeometry(QtCore.QRect(210, 260, 411, 192))
         self.textBrowser.setObjectName("textBrowser")
 
-        MainWindow.setCentralWidget(self.centralwidget)
-        self.statusbar = QtWidgets.QStatusBar(MainWindow)
+        mainWindow.setCentralWidget(self.centralwidget)
+        self.statusbar = QtWidgets.QStatusBar(mainWindow)
         self.statusbar.setObjectName("statusbar")
-        MainWindow.setStatusBar(self.statusbar)
+        mainWindow.setStatusBar(self.statusbar)
 
-        self.retranslateUi(MainWindow)
-        self.gatherData(MainWindow)
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        self.retranslateUi(mainWindow)
+        self.gatherData()
+        QtCore.QMetaObject.connectSlotsByName(mainWindow)
 
-    def retranslateUi(self, MainWindow):
+    def retranslateUi(self, mainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("Linkedin Scraper", "Linkedin Scraper"))
+        mainWindow.setWindowTitle(_translate("Linkedin Scraper", "Linkedin Scraper"))
         self.pushButton.setText(_translate("Linkedin Scraper", "Gather Data"))
         self.label.setText(_translate("Linkedin Scraper", "Niya\'s Linkedin Scraper"))
         self.lineEdit.setText(_translate("Linkedin Scraper", ""))
 
-    def gatherData(self, MainWindow):
+    def gatherData(self):
         link = self.lineEdit.text()
         if link != "":
             data = linkedinScraper.scraper(link)
             self.textBrowser.setText(data)
 
 if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
+    scraper = QtWidgets.QApplication(sys.argv)
+    mainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
-    sys.exit(app.exec_())
+    ui.setupUi(mainWindow)
+    mainWindow.show()
+    sys.exit(scraper.exec_())

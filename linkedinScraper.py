@@ -15,7 +15,7 @@ def scraper(link):
     password.send_keys(input("Enter your Password: "))
     driver.find_element_by_xpath("//button[@type='submit']").click()
 
-    # Use a test profile, I chose Martha Stewart's profile for simplicity
+    # Use a test profile (takes the input from the GUI)
     driver.get(link)
 
     # This will let us scroll down to the bottom of the page and wait for everything to load
