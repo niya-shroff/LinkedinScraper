@@ -1,4 +1,4 @@
-from pydantic import BaseModel, HttpUrl, EmailStr
+from pydantic import BaseModel, EmailStr, HttpUrl
 from typing import Optional
 
 class ScrapeRequest(BaseModel):
@@ -10,10 +10,10 @@ class ProfileData(BaseModel):
     name: str
     position: str
     company: str
-    start_time: str
-    end_time: str
-    total_time: str
-    summary: str
+    start_time: Optional[str] = ""
+    end_time: Optional[str] = ""
+    total_time: Optional[str] = ""
+    summary: Optional[str] = ""
 
 class ScrapeResponse(BaseModel):
     success: bool

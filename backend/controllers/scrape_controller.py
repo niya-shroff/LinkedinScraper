@@ -4,14 +4,17 @@ from app.services.linkedin_service import LinkedInService
 
 router = APIRouter()
 
-@router.post("/api/scrape", response_model=ScrapeResponse)
+@router.post("/api/scrape", response_model=ScrapeResponse, summary="Scrape LinkedIn profile")
 async def scrape_profile(request: ScrapeRequest):
     """
-    Scrape a LinkedIn profile
+    Scrape a LinkedIn profile using provided LinkedIn credentials.
+
+    Returns:
+        ScrapeResponse containing profile data or error message
     """
-    data = LinkedInService.scrape_profile(
+    profile_data = LinkedInService.scrape_profile(
         email=request.email,
         password=request.password,
         profile_url=str(request.profile_url)
     )
-    return ScrapeResponse(success=True, data=data, message="Profile scraped successfully")
+    return ScrapeResponse(success=True, data=profile_data, message="Profile scraped successfully")
