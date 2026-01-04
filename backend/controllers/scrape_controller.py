@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from app.models.schemas import ScrapeRequest, ScrapeResponse
-from app.services.linkedin_service import LinkedInService
+from models.schemas import ScrapeRequest, ScrapeResponse
+from services.linkedin_service import LinkedInService
 
 router = APIRouter()
 

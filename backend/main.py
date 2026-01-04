@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.controllers import scrape_controller
+from controllers import scrape_controller
 import os
 from dotenv import load_dotenv
 
@@ -12,7 +12,7 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS
+# CORS Middleware for frontend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "http://localhost:5173"],
@@ -21,17 +21,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Register routes
+# Register routers
 app.include_router(scrape_controller.router)
 
-# Health check
-@app.get("/")
+# Health check endpoints
+@app.get("/", summary="Root endpoint")
 async def root():
     return {"message": "LinkedIn Scraper API", "status": "running"}
 
-@app.get("/health")
+@app.get("/health", summary="Health check")
 async def health_check():
     return {"status": "healthy"}
+
 
 if __name__ == "__main__":
     import uvicorn
