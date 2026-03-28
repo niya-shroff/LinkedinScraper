@@ -4,12 +4,12 @@ A modern LinkedIn profile scraper with a REST API backend and React frontend.
 
 ## Features
 
-- 🔐 Secure LinkedIn authentication
-- 📊 Profile data extraction (name, position, company, work duration)
-- 🚀 FastAPI REST API backend
-- ⚛️ Modern React frontend with beautiful UI
-- 🐳 Docker containerization support
-- 📱 Responsive design
+- Secure LinkedIn authentication
+- Profile data extraction (name, position, company, work duration)
+- FastAPI REST API backend
+- Modern React frontend with beautiful UI
+- Docker containerization support
+- Responsive design
 
 ## Project Structure
 
