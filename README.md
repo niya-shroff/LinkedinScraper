@@ -248,7 +248,3 @@ If you encounter ChromeDriver errors:
 ## License
 
 This project is for educational purposes. Please respect LinkedIn's Terms of Service and use responsibly.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
