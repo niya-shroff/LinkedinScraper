@@ -1,142 +1,149 @@
-import os
-import time
-import re
+import asyncio
+import logging
 from typing import Dict, Optional
 
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+import zendriver as zd
 from bs4 import BeautifulSoup
 
+logging.basicConfig(level=logging.INFO)
+
+
 class LinkedInScraper:
-    """LinkedIn profile scraper using Selenium"""
+    def __init__(self):
+        self.browser: Optional[zd.Browser] = None
+        self.tab: Optional[zd.Tab] = None
 
-    def __init__(self, chromedriver_path: Optional[str] = None):
-        self.chromedriver_path = chromedriver_path or os.getenv(
-            'CHROMEDRIVER_PATH', '/usr/local/bin/chromedriver'
+    # --------------------------
+    # SETUP
+    # --------------------------
+    async def _setup(self):
+        logging.info("Starting browser...")
+
+        self.browser = await zd.start(
+            headless=True,
+            user_data_dir="/app/chrome-profile",
+            browser_args=[
+                "--no-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-gpu",
+            ],
         )
-        self.driver: Optional[webdriver.Chrome] = None
 
-    def _setup_driver(self) -> webdriver.Chrome:
-        chrome_options = Options()
-        chrome_options.add_argument("--headless")
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.add_argument("--disable-gpu")
-        chrome_options.add_argument("--window-size=1920,1080")
-        chrome_options.add_argument(
-            "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-        )
+        logging.info("Browser started")
 
-        service = Service(self.chromedriver_path)
-        self.driver = webdriver.Chrome(service=service, options=chrome_options)
-        return self.driver
+    # --------------------------
+    # LOGIN
+    # --------------------------
+    async def login(self, email: str, password: str) -> bool:
+        if not self.browser:
+            await self._setup()
 
-    def login(self, email: str, password: str) -> bool:
-        if not self.driver:
-            self._setup_driver()
+        logging.info("Opening LinkedIn...")
+        self.tab = await self.browser.get("https://www.linkedin.com/")
+
+        await self.tab.wait(3)
+
+        # ✅ CASE 1: Already logged in
         try:
-            self.driver.get("https://linkedin.com/uas/login")
-            time.sleep(2)
-            username = WebDriverWait(self.driver, 10).until(
-                EC.presence_of_element_located((By.ID, "username"))
-            )
-            username.send_keys(email)
-            password_field = self.driver.find_element(By.ID, "password")
-            password_field.send_keys(password)
-            self.driver.find_element(By.XPATH, "//button[@type='submit']").click()
-            time.sleep(3)
-            return "feed" in self.driver.current_url or "linkedin.com/in/" in self.driver.current_url
+            await self.tab.find("Me", best_match=True)
+            logging.info("Already logged in ✅")
+            return True
+        except:
+            pass
+
+        # ✅ CASE 2: Need login
+        logging.info("Navigating to login page...")
+        self.tab = await self.browser.get("https://www.linkedin.com/login")
+
+        await self.tab.wait(3)
+
+        try:
+            username = await self.tab.select("#username")
+            password_el = await self.tab.select("#password")
+
+            logging.info("Entering credentials...")
+            await username.send_keys(email)
+            await password_el.send_keys(password)
+
+            login_btn = await self.tab.select("button[type=submit]")
+            await login_btn.click()
+
+            logging.info("Waiting for login...")
+            await self.tab.wait(5)
+
+            # verify login
+            try:
+                await self.tab.find("Me", best_match=True)
+                logging.info("Login successful ✅")
+                return True
+            except:
+                logging.error("Login failed ❌")
+                return False
+
         except Exception as e:
-            print(f"[LinkedInScraper] Login error: {str(e)}")
+            logging.error(f"[Login Error] {e}")
             return False
 
-    def scrape_profile(self, profile_url: str) -> Dict[str, str]:
-        if not self.driver:
-            raise Exception("Driver not initialized. Call login first.")
-        try:
-            self.driver.get(profile_url)
-            time.sleep(2)
-            self._scroll_page()
-            soup = BeautifulSoup(self.driver.page_source, "lxml")
-            return self._extract_profile_data(soup)
-        except Exception as e:
-            raise Exception(f"Error scraping profile: {str(e)}")
+    # --------------------------
+    # SCRAPE PROFILE
+    # --------------------------
+    async def scrape_profile(self, profile_url: str) -> Dict[str, str]:
+        if not self.browser:
+            raise Exception("Browser not initialized")
 
-    def _scroll_page(self, scroll_timeout: int = 20):
-        start_time = time.time()
-        initial, final = 0, 1000
-        while True:
-            self.driver.execute_script(f"window.scrollTo({initial}, {final})")
-            initial, final = final, final + 1000
-            time.sleep(2)
-            if time.time() - start_time > scroll_timeout:
-                break
+        logging.info(f"Opening profile: {profile_url}")
+        self.tab = await self.browser.get(profile_url)
 
+        await self.tab.wait(5)
+
+        logging.info("Scrolling...")
+        for _ in range(5):
+            await self.tab.scroll_down(500)
+            await self.tab.wait(1)
+
+        html = await self.tab.get_content()
+        soup = BeautifulSoup(html, "lxml")
+
+        return self._extract_profile_data(soup)
+
+    # --------------------------
+    # PARSER (FIXED)
+    # --------------------------
     def _extract_profile_data(self, soup: BeautifulSoup) -> Dict[str, str]:
         data = {
             "name": "",
             "position": "",
             "company": "",
-            "start_time": "",
-            "end_time": "",
-            "total_time": "",
             "summary": "",
         }
+
         try:
-            intro = soup.find("div", {"class": "pv-text-details__left-panel"})
-            if intro and intro.find("h1"):
-                data["name"] = intro.find("h1").get_text().strip()
+            # ✅ Name
+            name_tag = soup.select_one("h1")
+            if name_tag:
+                data["name"] = name_tag.get_text(strip=True)
 
-            experiences = soup.find_all("div", {"class": "pvs-list__outer-container"})
-            if len(experiences) > 1:
-                position_spans = experiences[1].find_all("span")
-                if position_spans:
-                    data["position"] = position_spans[0].get_text().strip()
+            # ✅ Headline
+            headline_tag = soup.select_one(".text-body-medium")
+            if headline_tag:
+                data["position"] = headline_tag.get_text(strip=True)
 
-                company_block = experiences[1].find("div", {"class": "display-flex flex-column full-width"})
-                if company_block:
-                    company_span = company_block.find("span", {"class": "t-14 t-normal"})
-                    if company_span:
-                        data["company"] = company_span.get_text().strip()
-
-                    time_block = company_block.find("span", {"class": "t-14 t-normal t-black--light"})
-                    if time_block:
-                        time_text = time_block.get_text().strip()
-                        if "-" in time_text:
-                            parts = re.split("-", time_text)
-                            data["start_time"] = parts[0].strip()
-                            if len(parts) > 1:
-                                remainder = parts[1].split("·")
-                                data["end_time"] = remainder[0].strip()
-                                if len(remainder) > 1:
-                                    data["total_time"] = remainder[1].strip()
-
-            if data["name"] and data["position"] and data["company"]:
-                summary = f"{data['name']} works as {data['position']} at {data['company']}."
-                if data["start_time"] and data["end_time"]:
-                    summary += f" From {data['start_time']} to {data['end_time']}."
-                if data["total_time"]:
-                    summary += f" Total experience: {data['total_time']}."
-                data["summary"] = summary
+            # ✅ About section
+            about_tag = soup.select_one("#about ~ div span")
+            if about_tag:
+                data["summary"] = about_tag.get_text(strip=True)
 
         except Exception as e:
-            print(f"[LinkedInScraper] Data extraction error: {str(e)}")
+            logging.error(f"[Parsing Error] {e}")
 
+        logging.info(f"Extracted: {data}")
         return data
 
-    def close(self):
-        if self.driver:
-            self.driver.quit()
-            self.driver = None
-
-    def __enter__(self):
-        if not self.driver:
-            self._setup_driver()
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
+    # --------------------------
+    # CLEANUP
+    # --------------------------
+    async def close(self):
+        if self.browser:
+            logging.info("Closing browser...")
+            await self.browser.stop()
+            logging.info("Browser closed")

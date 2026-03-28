@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from models.schemas import ScrapeRequest, ScrapeResponse
-from services.linkedin_service import LinkedInService
+from backend.models.schemas import ScrapeRequest, ScrapeResponse
+from backend.services.linkedin_service import LinkedInService
 
 router = APIRouter()
 
@@ -12,7 +12,7 @@ async def scrape_profile(request: ScrapeRequest):
     Returns:
         ScrapeResponse containing profile data or error message
     """
-    profile_data = LinkedInService.scrape_profile(
+    profile_data = await LinkedInService.scrape_profile(
         email=request.email,
         password=request.password,
         profile_url=str(request.profile_url)
