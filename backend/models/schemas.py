@@ -7,13 +7,15 @@ class ScrapeRequest(BaseModel):
     profile_url: HttpUrl
 
 class ProfileData(BaseModel):
-    name: str
-    position: str
-    company: str
-    start_time: Optional[str] = ""
-    end_time: Optional[str] = ""
-    total_time: Optional[str] = ""
-    summary: Optional[str] = ""
+    name: Optional[str] = None
+    position: Optional[str] = None
+    company: Optional[str] = None
+    start_time: Optional[str] = None
+    end_time: Optional[str] = None
+    total_time: Optional[str] = None
+    summary: Optional[str] = None
+    position: Optional[str] = None
+    company: Optional[str] = None
 
 class ScrapeResponse(BaseModel):
     success: bool

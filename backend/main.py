@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from controllers import scrape_controller
+from backend.controllers import scrape_controller
 import os
 from dotenv import load_dotenv
 
